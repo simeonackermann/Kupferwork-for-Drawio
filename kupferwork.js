@@ -13,22 +13,57 @@ function chowlkFromCSV(ui) {
 
     var graph = ui.editor.graph;
 
-    mxResources.parse('chowlkFromCSV=CHOWLK from CSV');
+    mxResources.parse('chowlkFromCSV=CSV as CHOWLK...');
+
+    // keep original Graph.prototype.setAttributeForCell to restore after import
+    var _org_setAttributeForCell = Graph.prototype.setAttributeForCell
+    Graph.prototype.setAttributeForCell()
+
+    // overwrite Graph.prototype.setAttributeForCell
+    //      to avoid <UserObject> wrapper
+    function setAttributeForCell(cell, attributeName, attributeValue) {
+        if (attributeValue != null) {
+            cell.setAttribute(attributeName, attributeValue);
+        } else {
+            cell.removeAttribute(attributeName);
+        }
+
+        if (attributeName == "label") {
+            cell.value = `ns:${attributeValue}`
+        }
+    }
+
 
     function importCSV(data) {
         // TODO may optional syle, URIs, etc...
+        var csvTml = `## CSV styles
+## label: %label%<br>(%uri%)
+# style: rounded=0;whiteSpace=wrap;html=1;snapToPoint=1;
+## labelname: value
+## parentstyle: -`
+
+        data = `${csvTml}\n${data}`
+
+        Graph.prototype.setAttributeForCell = function(a, b, c) {
+            setAttributeForCell(a,b,c)
+        }
 
         // Makes the import one undoable edit
 		graph.getModel().beginUpdate();
 		try
 		{
             ui.importCsv(data, function(cells) {
-                // console.log('KUPFER after import CSV, done?!!!', cells);
+                // TODO may afterworks do something with cells ?!
+                // restore Graph.prototype.setAttributeForCell after success
+                Graph.prototype.setAttributeForCell = _org_setAttributeForCell
             })
         }
         catch (e) {
             console.log("KUPFER: something went wrong", e);
             ui.alert(`Failed to import CSV. Error: ${e.toString()}`);
+            // restore Graph.prototype.setAttributeForCell after fail
+            Graph.prototype.setAttributeForCell = _org_setAttributeForCell
+
         }
         finally
 		{
@@ -51,13 +86,10 @@ function chowlkFromCSV(ui) {
 
         mxEvent.addListener(input, 'change', function()
         {
-            if (input.files != null)
-            {
-                // Only one file for now...
+            if (input.files != null) {
                 var reader = new FileReader();
 
-                reader.onload = function(e)
-                {
+                reader.onload = function(e) {
                     importCSV(e.target.result);
                 };
 
@@ -76,11 +108,10 @@ function chowlkFromCSV(ui) {
         ui.impFMFileInputElt.click();
     });
 
-    var menu = ui.menus.get('insert');
+    var menu = ui.menus.get('insertAdvanced');
 	var oldFunct = menu.funct;
 
-	menu.funct = function(menu, parent)
-	{
+	menu.funct = function(menu, parent) {
 		oldFunct.apply(this, arguments);
 
 		ui.menus.addMenuItems(menu, ['-', 'chowlkFromCSV'], parent);

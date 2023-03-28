@@ -4,14 +4,14 @@ Some simple extensions for Drawio
 
 ## ExportAsTTL
 
-Export current (CHOWLK) graph directly from menu as turtle (TTL) file, converted with CHOWLK API.
+Adds *File -> Export As -> TTL* to export current (CHOWLK) graph turtle (TTL) file, converted with CHOWLK API.
 
 ## CHOWLKFromCSV
 
-Import CHOWLK graph from CSV. Use columns header as classes.
+Adds *Arrange -> Insert -> Advanced -> CSV as CHOWLK* to create a CHOWLK graph from CSV column headers.
 
 ## Usage
 
-Copy `kupferwork.js` into Drawio plugins folder an
+Add `kupferwork.js` as external plugin into drawio.
 
 ## Dev

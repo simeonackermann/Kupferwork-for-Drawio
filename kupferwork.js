@@ -29,7 +29,7 @@ function chowlkFromCSV(ui) {
         }
 
         if (attributeName == "label") {
-            cell.value = `ns:${attributeValue}`
+            cell.value = `<u>ns:${attributeValue}</u>`
         }
     }
 
